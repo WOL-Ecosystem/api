@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 //Account exixts, exit with appropriate message.
                 else {
-                    die("ACCOUNT_DOES_EXIST");
+                    die("ACCOUNT_ALREADY_EXISTS");
                 }
 
             }
