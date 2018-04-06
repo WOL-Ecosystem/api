@@ -21,10 +21,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         */
         if (filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
             $email = checkInput($_POST["email"]);
-            $emailState = "VALID";
         }
         else {
-            $emailState = "INVALID";
+            die("INVALID_EMAIL");
         }
 
         /*
@@ -33,10 +32,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         */
         if (preg_match($passwordPattern, $_POST["password"])) {
             $password = checkInput($_POST["password"]);
-            $passwordState = "VALID";
         }
         else {
-            $passwordState = "INVALID";
+            die("INVALID_PASSWORD");
         }
 
         /*
@@ -45,17 +43,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         */
         if (preg_match($passwordPattern, $_POST["repeat_password"])) {
             $repeat_password = checkInput($_POST["repeat_password"]);
-            $repeatPasswordState = "VALID";
         }
         else {
-            $repeatPasswordState = "INVALID";
+            die("INVALID_REPEAT_PASSWORD");
         }
 
-        //Chech if email, password and repeat_password are initialized.
+        //Chech if the initialization of email, password and repeat_password comply.
         if (isset($email) && isset($password) && isset($repeat_password)) {
 
             //Chech if password and repeat_password match.
             if (strcmp($password, $repeat_password) == 0) {
+
                 /*
                 Check if the required directory exists.
                 If does not exist, create it.
@@ -63,50 +61,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/")) {
                     mkdir($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/");
                 }
+
                 //Check if account exists. If does not, create it.
                 if (checkAccountAvailability ($email)) {
+
                     //Save email and hashed password.
                     $credentials = array("email" => $email,
                                         "passwordHash" => hashPassword($password));
+
                     //Export the credentials as json.
                     file_put_contents($_SERVER['DOCUMENT_ROOT'] .
                         "/wols/userdata/$email.json", json_encode($credentials, JSON_PRETTY_PRINT));
+
                     //Raise the appropriate flags.
-                    $passwordMatchState = true;
-                    $serverState = "SUCCESS";
+                    $ServerResponse = "SUCCESS";
                 }
-                //Account exixts, exit with appropriate message.
+                //Account exixts. Exit with appropriate message.
                 else {
                     die("ACCOUNT_ALREADY_EXISTS");
                 }
 
             }
-            /*Password and repeat_password dont match.
-            Raise the appropriate flags.
+            /*Password and repeat_password dont match. Exit with appropriate message.
             */
             else {
-                $passwordMatchState = false;
-                $serverState = "FAILURE";
+                die("PASSWORDS_DONT_MATCH");
             }
         }
-        /*
-        Email or password or repeat_password does not comply with the rules; Dont accept.
-        Raise the appropriate flags.
-        */
-        else {
-            $passwordMatchState = false;
-            $serverState = "FAILURE";
-        }
 
-        //Respond to the clients request with json output (testing perpuses).
-        $serverResponse = array("Email" => $emailState,
-                                "Password" => $passwordState,
-                                "Repeat_Password" => $repeatPasswordState,
-                                "Passwords Match" => $passwordMatchState,
-                                "Server Response" => $serverState);
-
-        $jsonServerResponse = json_encode($serverResponse);
-        echo $jsonServerResponse;
+        //Server response
+        echo $ServerResponse;
     }
     //Handle missing post variables.
     else {
