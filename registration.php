@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         //Password must include at least one uppercase and one lowercase characters, one number and one special charachter
         $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
-        $mac_addressPattern = "/^[a-fA-F0-9]{12}$/";
+        $mac_addressPattern = "/^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$/";
 
         /*
         Check email and if is valid, save it and raise the respective flag.
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         If mac_address is invalid dont save it and raise respective flag.
         */
         if (preg_match($mac_addressPattern, $_POST["mac_address"])) {
-            $mac_address = checkInput($_POST["mac_address"]);
+            $mac_address = checkMac($_POST["mac_address"]);
         }
         else {
             die("INVALID_MAC_ADDRESS");
@@ -134,8 +134,12 @@ else {
 //Comply the input with only accepted characters.
 function checkInput ($input) {
     $input = trim($input);
-    $input = stripslashes($input);
     $input = htmlspecialchars($input);
+    return $input;
+}
+
+function checkMac ($input) {
+    $input = strtoupper($input);
     return $input;
 }
 
