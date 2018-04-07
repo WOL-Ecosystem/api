@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         (isset($_POST["repeat_password"]) && !empty($_POST["repeat_password"]))) {
 
         //Password must include at least one uppercase and one lowercase characters, one number and one special charachter
-        $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,32}$/";
+        $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
 
         /*
         Check email and if is valid, save it and raise the respective flag.
@@ -63,11 +63,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 //Check if account exists. If does not, create it.
-                if (checkAccountAvailability ($email)) {
+                if (checkAccountAvailability($email)) {
+                    //Set default time zone
+                    date_default_timezone_set('Europe/Athens');
 
-                    //Save email and hashed password.
+                    //Save email, hashed password and date of creation.
                     $credentials = array("email" => $email,
-                                        "passwordHash" => hashPassword($password));
+                                        "passwordHash" => hashInput($password),
+                                        "passwordDoubleHash" => hashInput(hashInput($password)),
+                                        "dateCreated" => date_format(date_create(), 'Y-m-d H:i:s'));
 
                     //Export the credentials as json.
                     file_put_contents($_SERVER['DOCUMENT_ROOT'] .
@@ -114,14 +118,18 @@ function checkInput ($input) {
     $input = htmlspecialchars($input);
     return $input;
 }
+
 //Generate password hash.
-function hashPassword ($password) {
+function hashInput ($input) {
     $options = [
-        'cost' => 11,
+    'memory_cost' => 2048,
+    'time_cost' => 4,
+    'threads' =>3
     ];
-    $passwordHash = password_hash($password, PASSWORD_BCRYPT, $options);
-    return $passwordHash;
+    $inputHash = password_hash($input, PASSWORD_ARGON2I, $options);
+    return $inputHash;
 }
+
 //Check if account exists or not.
 function checkAccountAvailability ($email) {
     if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/". $email .".json")) {
