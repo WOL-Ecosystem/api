@@ -10,19 +10,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     //Check if POST data exists as variables and are not empty
     if ((isset($_POST["email"]) && !empty($_POST["email"])) &&
         (isset($_POST["password"]) && !empty($_POST["password"])) &&
-        (isset($_POST["repeat_password"]) && !empty($_POST["repeat_password"])) &&
-        (isset($_POST["mac_address"]) && !empty($_POST["mac_address"]))) {
+        (isset($_POST["repeat_password"]) && !empty($_POST["repeat_password"]))) {
 
         //Password must include at least one uppercase and one lowercase characters, one number and one special charachter
         $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
-        $mac_addressPattern = "/^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$/";
 
         /*
         Check email and if is valid, save it and raise the respective flag.
         If email is invalid dont save it and raise respective flag.
         */
         if (filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
-            $email = checkInput($_POST["email"]);
+            $email = $_POST["email"];
         }
         else {
             die("INVALID_EMAIL");
@@ -50,19 +48,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("INVALID_REPEAT_PASSWORD");
         }
 
-        /*
-        Check mac_address and if is valid, save it and raise the respective flag.
-        If mac_address is invalid dont save it and raise respective flag.
-        */
-        if (preg_match($mac_addressPattern, $_POST["mac_address"])) {
-            $mac_address = checkMac($_POST["mac_address"]);
-        }
-        else {
-            die("INVALID_MAC_ADDRESS");
-        }
-
         //Chech if the initialization of email, password and repeat_password comply.
-        if (isset($email) && isset($password) && isset($repeat_password) && isset($mac_address)) {
+        if (isset($email) && isset($password) && isset($repeat_password)) {
 
             //Chech if password and repeat_password match.
             if (strcmp($password, $repeat_password) == 0) {
@@ -76,26 +63,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 //Check if account exists. If does not, create it.
-                if (checkAccountAvailability($email)) {
+                if (!accountExists($email)) {
                     //Set default time zone
                     date_default_timezone_set('Europe/Athens');
+
                     $passwordHash = hashInput($password);
                     $passwordDoubleHash = hashInput($passwordHash);
                     //Save email, hashed password and date of creation.
                     $credentials = array("email" => $email,
                                         "passwordHash" => $passwordHash,
                                         "passwordDoubleHash" => $passwordDoubleHash,
-                                        "macAddress" => $mac_address,
                                         "dateCreated" => date_format(date_create(), 'Y-m-d H:i:s'));
 
                     //Export the credentials as json.
                     file_put_contents($_SERVER['DOCUMENT_ROOT'] .
                         "/wols/userdata/$email.json", json_encode($credentials, JSON_PRETTY_PRINT));
 
-
                     //Respond to client.
-                    $ServerResponse = array("Response" => "SUCCESS",
-                                        "Token" => $passwordDoubleHash);
+                    echo $passwordDoubleHash;
 
                 }
                 //Account exixts. Exit with appropriate message.
@@ -110,15 +95,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 die("PASSWORDS_DONT_MATCH");
             }
         }
-
-        //Server response
-        //echo $ServerResponse;
-        echo json_encode($ServerResponse);
     }
     //Handle missing post variables.
     else {
-        if (!isset($_POST["email"]) || !isset($_POST["password"]) ||
-            !isset($_POST["repeat_password"]) || !isset($_POST["mac_address"])) {
+        if (!isset($_POST["email"]) || !isset($_POST["password"]) || !isset($_POST["repeat_password"])) {
             die("FORM_DATA_MISSING");
         }
         else {
@@ -138,12 +118,7 @@ function checkInput ($input) {
     return $input;
 }
 
-function checkMac ($input) {
-    $input = strtoupper($input);
-    return $input;
-}
-
-//Generate password hash.
+//Generate input hash.
 function hashInput ($input) {
     $options = [
     'memory_cost' => 2048,
@@ -155,10 +130,10 @@ function hashInput ($input) {
 }
 
 //Check if account exists or not.
-function checkAccountAvailability ($email) {
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/". $email .".json")) {
-        return false;
+function accountExists ($email) {
+    if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$email.json")) {
+        return true;
     }
-    return true;
+    return false;
 }
 ?>
