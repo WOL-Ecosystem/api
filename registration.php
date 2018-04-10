@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 date_default_timezone_set('Europe/Athens');
 
                 $passwordHash = hashInput($password);
-                $apiKey = hash_hmac("sha512", random_bytes(512), $passwordHash);
+                $apiKey = hash_hmac("sha512/256", random_bytes(512), $passwordHash);
                 $credentials = array("email" => $email,
                                     "passwordHash" => $passwordHash,
                                     "apiKey" => $apiKey,
@@ -54,7 +54,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 file_put_contents($_SERVER['DOCUMENT_ROOT'] .
                     "/wols/userdata/$email.json", json_encode($credentials, JSON_PRETTY_PRINT));
 
-                echo $apiKey;
+                $serverResponse = array("API_KEY" => $apiKey);
+                echo json_encode($serverResponse);
             }
             else {
                 die("ACCOUNT_ALREADY_EXISTS");
