@@ -8,20 +8,25 @@ ini_set('display_startup_errors', 1);
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Check if POST data exists as variables and are not empty
-    if ((isset($_POST["email"]) && !empty($_POST["email"])) &&
+    if ((isset($_POST["username"]) && !empty($_POST["username"])) &&
         (isset($_POST["auth_key"]) && !empty($_POST["auth_key"])) &&
         (isset($_POST["local_pc_names"]) && !empty($_POST["local_pc_names"]))) {
 
+        //Username must not include any special characters and must be at least 5 characters long.
+        $usernamePattern = "/^([a-zA-Z0-9]){5,20}$/";
+
         //Password must include at least one uppercase and one lowercase characters, one number and one special character.
         $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
-        $apiKeyPattern = "/^([a-f0-9]){64}$/";
 
-        //Check email and if is valid, save it. If email is invalid abort the connection.
-        if (filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
-            $email = $_POST["email"];
+        //API key must include only lowercase characters and numbers and be 64 characters long.
+        $apiKeyPattern = "/^([a-z0-9]){64}$/";
+
+        //Check USERNAME and if is valid, save it. If email is invalid abort the connection.
+        if (preg_match($usernamePattern, $_POST["username"])) {
+            $username = checkInput($_POST["username"]);
         }
         else {
-            die("INVALID_EMAIL");
+            die("INVALID_USERNAME");
         }
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
@@ -32,16 +37,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("INVALID_AUTH_KEY");
         }
 
-        if (isset($email) && isset($auth_key)) {
+        if (isset($username) && isset($auth_key)) {
 
-            if (accountExists($email)) {
+            if (accountExists($username)) {
 
-                $jsonContent = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$email.json"));
+                $jsonContent = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$username.json"));
 
                 $passwordHash = $jsonContent->{"passwordHash"};
-                $apiKey = $jsonContent->{"apiKey"};
+                $apiKeyHash = $jsonContent->{"apiKeyHash"};
 
-                if (password_verify($auth_key, $passwordHash) || hash_equals($auth_key, $apiKey)) {
+                if (password_verify($auth_key, $passwordHash) || password_verify($auth_key, $apiKeyHash)) {
                     echo "account is validated by password or api key";
                 }
                 else {
@@ -55,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     //Handle missing post variables.
     else {
-        if (!isset($_POST["email"]) || !isset($_POST["auth_key"]) || !isset($_POST["local_pc_names"])) {
+        if (!isset($_POST["username"]) || !isset($_POST["auth_key"]) || !isset($_POST["local_pc_names"])) {
             die("FORM_DATA_MISSING");
         }
         else {
@@ -73,8 +78,8 @@ function checkInput ($input) {
     return $input;
 }
 
-function accountExists ($email) {
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$email.json")) {
+function accountExists ($username) {
+    if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$username.json")) {
         return true;
     }
     return false;
