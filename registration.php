@@ -9,8 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Check if POST data exists as variables and are not empty
     if ((isset($_POST["email"]) && !empty($_POST["email"])) &&
-        (isset($_POST["password"]) && !empty($_POST["password"])) &&
-        (isset($_POST["repeat_password"]) && !empty($_POST["repeat_password"]))) {
+        (isset($_POST["password"]) && !empty($_POST["password"]))) {
 
         //Password must include at least one uppercase and one lowercase characters, one number and one special character.
         $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
@@ -31,47 +30,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("INVALID_PASSWORD");
         }
 
-        //Check repeat_password and if is valid, save it. If repeat_password is invalid abort the connection.
-        if (preg_match($passwordPattern, $_POST["repeat_password"])) {
-            $repeat_password = checkInput($_POST["repeat_password"]);
-        }
-        else {
-            die("INVALID_REPEAT_PASSWORD");
-        }
-
         //Chech if the initialization of email, password and repeat_password comply.
-        if (isset($email) && isset($password) && isset($repeat_password)) {
+        if (isset($email) && isset($password)) {
 
-            //Chech if password and repeat_password match.
-            if (strcmp($password, $repeat_password) == 0) {
+            //Check if the required directory exists. If does not exist, create it.
+            if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/")) {
+                mkdir($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/");
+            }
 
-                //Check if the required directory exists. If does not exist, create it.
-                if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/")) {
-                    mkdir($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/");
-                }
+            //Check if account exists. If does not, create it.
+            if (!accountExists($email)) {
 
-                //Check if account exists. If does not, create it.
-                if (!accountExists($email)) {
+                date_default_timezone_set('Europe/Athens');
 
-                    date_default_timezone_set('Europe/Athens');
+                $passwordHash = hashInput($password);
+                $apiKey = hash_hmac("sha512", random_bytes(512), $passwordHash);
+                $credentials = array("email" => $email,
+                                    "passwordHash" => $passwordHash,
+                                    "apiKey" => $apiKey,
+                                    "dateCreated" => date_format(date_create(), 'Y-m-d H:i:s'));
 
-                    $passwordHash = hashInput($password);
-                    $credentials = array("email" => $email,
-                                        "passwordHash" => $passwordHash,
-                                        "dateCreated" => date_format(date_create(), 'Y-m-d H:i:s'));
+                //Export the credentials as json.
+                file_put_contents($_SERVER['DOCUMENT_ROOT'] .
+                    "/wols/userdata/$email.json", json_encode($credentials, JSON_PRETTY_PRINT));
 
-                    //Export the credentials as json.
-                    file_put_contents($_SERVER['DOCUMENT_ROOT'] .
-                        "/wols/userdata/$email.json", json_encode($credentials, JSON_PRETTY_PRINT));
-
-                    echo "SUCCESS";
-                }
-                else {
-                    die("ACCOUNT_ALREADY_EXISTS");
-                }
+                echo $apiKey;
             }
             else {
-                die("PASSWORDS_DONT_MATCH");
+                die("ACCOUNT_ALREADY_EXISTS");
             }
         }
     }
