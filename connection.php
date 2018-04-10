@@ -9,11 +9,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Check if POST data exists as variables and are not empty
     if ((isset($_POST["email"]) && !empty($_POST["email"])) &&
-        (isset($_POST["password"]) && !empty($_POST["password"])) &&
+        (isset($_POST["auth_key"]) && !empty($_POST["auth_key"])) &&
         (isset($_POST["local_pc_names"]) && !empty($_POST["local_pc_names"]))) {
 
         //Password must include at least one uppercase and one lowercase characters, one number and one special character.
         $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
+        $apiKeyPattern = "/^([a-f0-9]){128}$/";
 
         //Check email and if is valid, save it. If email is invalid abort the connection.
         if (filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
@@ -24,27 +25,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
-        if (preg_match($passwordPattern, $_POST["password"])) {
-            $password = checkInput($_POST["password"]);
+        if (preg_match($passwordPattern, $_POST["auth_key"])) {
+            $auth_key = checkInput($_POST["auth_key"]);
+        }
+        elseif (preg_match($apiKeyPattern, $_POST["auth_key"])) {
+            $auth_key = checkInput($_POST["auth_key"]);
         }
         else {
-            die("INVALID_PASSWORD");
+            die("INVALID_AUTH_KEY");
         }
 
-        if (isset($email) && isset($password)) {
+        if (isset($email) && isset($auth_key)) {
 
             if (accountExists($email)) {
 
                 $jsonContent = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$email.json"));
 
-                $hash = $jsonContent->{"passwordHash"};
+                $passwordHash = $jsonContent->{"passwordHash"};
+                $apiKey = $jsonContent->{"apiKey"};
 
-                if (password_verify($password, $hash)) {
-                    echo "account is validated";
-                    //handle local_pc_names variable
+                if (password_verify($auth_key, $passwordHash)) {
+                    echo "account is validated by password";
+                }
+                elseif (hash_equals($auth_key, $apiKey)) {
+                    echo "account is validated by apiKey";
                 }
                 else {
-                    die("INCORRECT_PASSWORD");
+                    die("INCORRECT_AUTH_KEY");
                 }
             }
             else {
@@ -54,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     //Handle missing post variables.
     else {
-        if (!isset($_POST["email"]) || !isset($_POST["password"]) || !isset($_POST["local_pc_names"])) {
+        if (!isset($_POST["email"]) || !isset($_POST["auth_key"]) || !isset($_POST["local_pc_names"])) {
             die("FORM_DATA_MISSING");
         }
         else {
