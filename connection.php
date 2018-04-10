@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         //Password must include at least one uppercase and one lowercase characters, one number and one special character.
         $passwordPattern = "/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{9,32}$/";
-        $apiKeyPattern = "/^([a-f0-9]){128}$/";
+        $apiKeyPattern = "/^([a-f0-9]){64}$/";
 
         //Check email and if is valid, save it. If email is invalid abort the connection.
         if (filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
@@ -25,10 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
-        if (preg_match($passwordPattern, $_POST["auth_key"])) {
-            $auth_key = checkInput($_POST["auth_key"]);
-        }
-        elseif (preg_match($apiKeyPattern, $_POST["auth_key"])) {
+        if (preg_match($passwordPattern, $_POST["auth_key"]) || preg_match($apiKeyPattern, $_POST["auth_key"])) {
             $auth_key = checkInput($_POST["auth_key"]);
         }
         else {
@@ -44,11 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $passwordHash = $jsonContent->{"passwordHash"};
                 $apiKey = $jsonContent->{"apiKey"};
 
-                if (password_verify($auth_key, $passwordHash)) {
-                    echo "account is validated by password";
-                }
-                elseif (hash_equals($auth_key, $apiKey)) {
-                    echo "account is validated by apiKey";
+                if (password_verify($auth_key, $passwordHash) || hash_equals($auth_key, $apiKey)) {
+                    echo "account is validated by password or api key";
                 }
                 else {
                     die("INCORRECT_AUTH_KEY");
