@@ -49,8 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $macAndName = explode(",", checkMacAndName($localComputer, $macAddressPattern, $usernamePattern));
 
                 //Array of the submited computers
-                $macAndNameOfLocalComputer[] = array("computerName" => $macAndName[0],
-                                                    "computerMac" => $macAndName[1]);
+                $macAndNameOfLocalComputer[] = array("computerName" => hashInput($macAndName[0]),
+                                                    "computerMac" => hashInput($macAndName[1]));
             }
         }
         //only one computer was submited
