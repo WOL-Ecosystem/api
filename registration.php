@@ -37,62 +37,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("INVALID_PASSWORD");
         }
 
-
+        //Check local computer mac and name
         if (substr_count($_POST["local_pc_names"], ",")) {
 
-            $localComputersArray = explode(",", $_POST["local_pc_names"]);
+            //Array of macs and names separated with commas
+            $macAndNameArray = explode(",", $_POST["local_pc_names"]);
 
-            foreach ($localComputersArray as $localComputer) {
+            foreach ($macAndNameArray as $localComputer) {
 
-                if (substr_count($localComputer , "-")) {
-                    $macAndNameOfLocalComputer =  explode("-", $localComputer);
+                //Mac and name of the current submited computer.
+                $macAndName = explode(",", checkMacAndName($localComputer, $macAddressPattern, $usernamePattern));
 
-                    if (preg_match($macAddressPattern, $macAndNameOfLocalComputer[0])) {
-                        $computerMac = checkInput($macAndNameOfLocalComputer[0]);
-                    }
-                    else {
-                        die("INVALID_MAC_ADDRESS");
-                    }
-
-                    if (preg_match($usernamePattern, $macAndNameOfLocalComputer[1])) {
-                        $computerName = checkInput($macAndNameOfLocalComputer[1]);
-                    }
-                    else {
-                        die("INVALID_COMPUTER_NAME");
-                    }
-
-                    $localComputersMacAndName[] = array("computerName" => $computerName,
-                                                    "computerMac" => $computerMac);
-                }
-                //invalid computer name
-                else {
-                    die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
-                }
+                //Array of the submited computers
+                $macAndNameOfLocalComputer[] = array("computerName" => $macAndName[0],
+                                                    "computerMac" => $macAndName[1]);
             }
         }
-        //only one pc was submited
+        //only one computer was submited
         else {
             if (substr_count($_POST["local_pc_names"] , "-")) {
-                $macAndNameOfLocalComputer =  explode("-", $_POST["local_pc_names"]);
+                //Mac and name of the submited computer
+                $macAndName = explode(",", checkMacAndName($_POST["local_pc_names"], $macAddressPattern, $usernamePattern));
 
-                if (preg_match($macAddressPattern, $macAndNameOfLocalComputer[0])) {
-                    $computerMac = checkInput($macAndNameOfLocalComputer[0]);
-                }
-                else {
-                    die("INVALID_MAC_ADDRESS");
-                }
-
-                if (preg_match($usernamePattern, $macAndNameOfLocalComputer[1])) {
-                    $computerName = checkInput($macAndNameOfLocalComputer[1]);
-                }
-                else {
-                    die("INVALID_COMPUTER_NAME");
-                }
-
-                $localComputersMacAndName[] = array("computerName" => $computerName,
-                                                "computerMac" => $computerMac);
+                //Array of the submited computers
+                $macAndNameOfLocalComputer[] = array("computerName" => hashInput($macAndName[0]),
+                                                    "computerMac" => hashInput($macAndName[1]));
             }
-            //invalid computer name
             else {
                 die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
             }
@@ -100,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         //Chech if the initialization of email, password and repeat_password comply.
-        if (isset($username) && isset($password) && isset($computerMac) && isset($computerName)) {
+        if (isset($username) && isset($password) && isset($macAndNameOfLocalComputer)) {
 
             //Check if the required directory exists. If does not exist, create it.
             if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/")) {
@@ -113,13 +83,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 date_default_timezone_set('Europe/Athens');
 
                 $passwordHash = hashInput($password);
-                $apiKey = generateUniqueApiKey();
+                $apiKey = generateUniqueApiKey($password);
                 $apiKeyHash = hashInput($apiKey);
 
                 $credentials = array("username" => $username,
                                     "passwordHash" => $passwordHash,
                                     "apiKeyHash" => $apiKeyHash,
-                                    "compuetersInLocalNetwork" => $localComputersMacAndName,
+                                    "compuetersInLocalNetwork" => $macAndNameOfLocalComputer,
                                     "dateCreated" => date_format(date_create(), 'Y-m-d H:i:s'));
 
                 //Export the credentials as json.
@@ -164,8 +134,33 @@ function hashInput ($input) {
     return $inputHash;
 }
 
-function generateUniqueApiKey () {
-    return hash_hmac("sha512/256", bin2hex(random_bytes(1024)), bin2hex(random_bytes(1024)));
+function checkMacAndName($localComputer, $macAddressPattern, $usernamePattern) {
+
+    if (substr_count($localComputer , "-")) {
+        $macAndNameOfLocalComputer =  explode("-", $localComputer);
+
+        if (preg_match($macAddressPattern, $macAndNameOfLocalComputer[0])) {
+            $computerMac = checkInput($macAndNameOfLocalComputer[0]);
+        }
+        else {
+            die("INVALID_MAC_ADDRESS");
+        }
+
+        if (preg_match($usernamePattern, $macAndNameOfLocalComputer[1])) {
+            $computerName = checkInput($macAndNameOfLocalComputer[1]);
+        }
+        else {
+            die("INVALID_COMPUTER_NAME");
+        }
+        return $computerMac. "," . $computerName;
+    }
+    else {
+        die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
+    }
+}
+
+function generateUniqueApiKey ($password) {
+    return hash_hmac("sha512/256", bin2hex(random_bytes(2048)), $password);
 }
 
 function accountExists ($username) {
