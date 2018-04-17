@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     //Check if POST data exists as variables and are not empty
     if ((isset($_POST["username"]) && !empty($_POST["username"])) &&
         (isset($_POST["password"]) && !empty($_POST["password"])) &&
-        (isset($_POST["local_pc_names"]) && !empty($_POST["local_pc_names"]))) {
+        (isset($_POST["mac_and_name"]) && !empty($_POST["mac_and_name"]))) {
 
         //Username must not include any special characters and must be at least 5 characters long.
         $usernamePattern = "/^([a-zA-Z0-9]){5,20}$/";
@@ -38,10 +38,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         //Check local computer mac and name
-        if (substr_count($_POST["local_pc_names"], ",")) {
+        if (substr_count($_POST["mac_and_name"], ",")) {
 
             //Array of macs and names separated with commas
-            $macAndNameArray = explode(",", $_POST["local_pc_names"]);
+            $macAndNameArray = explode(",", $_POST["mac_and_name"]);
 
             foreach ($macAndNameArray as $localComputer) {
 
@@ -49,19 +49,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $macAndName = explode(",", checkMacAndName($localComputer, $macAddressPattern, $usernamePattern));
 
                 //Array of the submited computers
-                $macAndNameOfLocalComputer[] = array("computerName" => hashInput($macAndName[0]),
-                                                    "computerMac" => hashInput($macAndName[1]));
+                $macAndNameOfLocalComputer[] = array("computerName" => $macAndName[1],
+                                                    "computerMac" => $macAndName[0]);
             }
         }
         //only one computer was submited
         else {
-            if (substr_count($_POST["local_pc_names"] , "-")) {
+            if (substr_count($_POST["mac_and_name"] , "-")) {
                 //Mac and name of the submited computer
-                $macAndName = explode(",", checkMacAndName($_POST["local_pc_names"], $macAddressPattern, $usernamePattern));
+                $macAndName = explode(",", checkMacAndName($_POST["mac_and_name"], $macAddressPattern, $usernamePattern));
 
                 //Array of the submited computers
-                $macAndNameOfLocalComputer[] = array("computerName" => hashInput($macAndName[0]),
-                                                    "computerMac" => hashInput($macAndName[1]));
+                $macAndNameOfLocalComputer[] = array("computerName" => $macAndName[1],
+                                                    "computerMac" => $macAndName[0]);
             }
             else {
                 die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
@@ -73,8 +73,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($username) && isset($password) && isset($macAndNameOfLocalComputer)) {
 
             //Check if the required directory exists. If does not exist, create it.
-            if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/")) {
-                mkdir($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/");
+            if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/users/")) {
+                mkdir($_SERVER['DOCUMENT_ROOT'] . "/users/");
             }
 
             //Check if account exists. If does not, create it.
@@ -89,12 +89,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $credentials = array("username" => $username,
                                     "passwordHash" => $passwordHash,
                                     "apiKeyHash" => $apiKeyHash,
-                                    "compuetersInLocalNetwork" => $macAndNameOfLocalComputer,
+                                    "computersInLocalNetwork" => $macAndNameOfLocalComputer,
                                     "dateCreated" => date_format(date_create(), 'Y-m-d H:i:s'));
 
                 //Export the credentials as json.
                 file_put_contents($_SERVER['DOCUMENT_ROOT'] .
-                    "/wols/userdata/$username.json", json_encode($credentials, JSON_PRETTY_PRINT));
+                    "/users/$username.json", json_encode($credentials, JSON_PRETTY_PRINT));
 
                 $serverResponse = array("API_KEY" => $apiKey);
                 echo json_encode($serverResponse);
@@ -106,7 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     //Handle missing post variables.
     else {
-        if (!isset($_POST["username"]) || !isset($_POST["password"]) || !isset($_POST["local_pc_names"])) {
+        if (!isset($_POST["username"]) || !isset($_POST["password"]) || !isset($_POST["mac_and_name"])) {
             die("FORM_DATA_MISSING");
         }
         else {
@@ -164,7 +164,7 @@ function generateUniqueApiKey ($password) {
 }
 
 function accountExists ($username) {
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/wols/userdata/$username.json")) {
+    if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/users/$username.json")) {
         return true;
     }
     return false;
