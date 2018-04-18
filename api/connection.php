@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $apiKey = checkInput($_POST["auth_key"]);
         }
         else {
-            die("INVALID_AUTH_KEY");
+            die("INVALID_API_KEY");
         }
 
         if (isset($username) && isset($apiKey)) {
