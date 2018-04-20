@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $apiKey = generateUniqueApiKey($password);
                 $apiKeyHash = hashInput($apiKey);
 
-                $credentials = array("username" => $username,
+                $userdata = array("username" => $username,
                                     "passwordHash" => $passwordHash,
                                     "apiKeyHash" => $apiKeyHash,
                                     "computersInLocalNetwork" => $macAndNameOfLocalComputer,
@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 //Export the credentials as json.
                 file_put_contents($_SERVER['DOCUMENT_ROOT'] .
-                    "/users/$username.json", json_encode($credentials, JSON_PRETTY_PRINT));
+                    "/users/$username.json", json_encode($userdata, JSON_PRETTY_PRINT));
 
                 $serverResponse = array("API_KEY" => $apiKey);
                 echo json_encode($serverResponse);
