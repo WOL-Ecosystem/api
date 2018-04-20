@@ -1,10 +1,10 @@
 # WOL-Server (aka. Wake on Lan-Server)
 
-WOL-Server is a RESTfull API designed to work alongisde with the WOL-Client.
+WOL-Server is a RESTful API designed to work alongisde with the WOL-Client.
 
 ## Current status
 
-This project is still a WIP. With that being said, please do not procced with the following instruction until further notice.    
+Project enrolled to V1.0.0! YAYYYYY    
 
 ## Getting Started
 
