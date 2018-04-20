@@ -8,8 +8,6 @@ Project enrolled to V1.0.0! YAYYYYY
 
 ## Getting Started
 
-Getting started is easy. You can choose to use the service i provide or use your own.
-
 ### Prerequisites
 
 - Apache or nginx already installed and running in your server.
