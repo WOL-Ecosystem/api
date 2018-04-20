@@ -25,7 +25,7 @@ Reaching the API is as easy as typing the address of your server followed up by 
 If you want to contribute to the project, you are more than welcome. Simply, fork the repository, commit your code and create a pull request.
 
 ## Versions
-  - none yet
+  - version 1.0.0
 
 ## Authors
 
