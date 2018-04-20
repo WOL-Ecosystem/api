@@ -8,7 +8,8 @@ ini_set('display_startup_errors', 1);
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Check if POST data exists as variables and are not empty
-    if ((isset($_POST["username"]) && !empty($_POST["username"])) && (isset($_POST["api_key"]) && !empty($_POST["api_key"]))) {
+    if ((isset($_POST["username"]) && !empty($_POST["username"])) &&
+        (isset($_POST["api_key"]) && !empty($_POST["api_key"]))) {
 
         //Username must not include any special characters and must be at least 5 characters long.
         $usernamePattern = "/^([a-zA-Z0-9]){5,20}$/";
@@ -26,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
         if (preg_match($apiKeyPattern, $_POST["api_key"])) {
-            $apiKey = checkInput($_POST["auth_key"]);
+            $apiKey = checkInput($_POST["api_key"]);
         }
         else {
             die("INVALID_API_KEY");
