@@ -2,13 +2,13 @@
 
 WOL-Server is a RESTful API designed to work alongisde with the WOL-Client.
 
+## :computer: [WOL- Client (aka. Wake on Lan-Client)](https://github.com/geocfu/WOL-Client) :arrow_right:
+
+WOL-Client is a java project meant to run on any raspberry pi. As the name implies, with this project you will be able to remotely boot your computer/s from anywhere.   
+
 ## Current status
 
 Project enrolled to V1.0.0! YAYYYYY  
-
-## :computer: [WOL- Client (aka. Wake on Lan-Client)](https://github.com/geocfu/WOL-Client)
-
-WOL-Client is a java project meant to run on any raspberry pi. As the name implies, with this project you will be able to remotely boot your computer/s from anywhere.   
 
 ## Getting Started
 
@@ -27,7 +27,7 @@ Reaching the API is as easy as typing the address of your server followed up by 
 If you want to contribute to the project, you are more than welcome. Simply, fork the repository, commit your code and create a pull request.
 
 ## Versions
-  - version 1.0.0
+  - version 1.0.0 - [release](https://github.com/geocfu/WOL-Server/releases/tag/1.0.0)
 
 ## Authors
 
