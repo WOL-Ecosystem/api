@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 $jsonContent = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/users/$username.json"), true);
 
-                if (password_verify($password, $jsonContent["apiKeyHash"])) {
+                if (password_verify($apiKey, $jsonContent["apiKeyHash"])) {
 
                     foreach($jsonContent["computersInLocalNetwork"] as $key => $value) {
 
@@ -52,7 +52,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                     file_put_contents($_SERVER['DOCUMENT_ROOT'] . "/users/$username.json", json_encode($jsonContent, JSON_PRETTY_PRINT), LOCK_EX);
 
-                    echo json_encode($response);
+                    if (isset($response)) {
+                        echo json_encode($response);
+                    }
+                    else {
+                        echo "DO_NOTHING";
+                    }
                 }
                 else {
                     die("INCORRECT_API_KEY");
