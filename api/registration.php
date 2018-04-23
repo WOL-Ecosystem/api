@@ -50,7 +50,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 //Array of the submited computers
                 $macAndNameOfLocalComputer[] = array("computerName" => $macAndName[1],
-                                                    "computerMac" => $macAndName[0]);
+                                                    "computerMac" => $macAndName[0],
+                                                    "wakeUp" => 'false');
             }
         }
         //only one computer was submited
@@ -61,7 +62,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 //Array of the submited computers
                 $macAndNameOfLocalComputer[] = array("computerName" => $macAndName[1],
-                                                    "computerMac" => $macAndName[0]);
+                                                    "computerMac" => $macAndName[0],
+                                                    "wakeUp" => 'false');
             }
             else {
                 die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
@@ -86,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $apiKey = generateUniqueApiKey($password);
                 $apiKeyHash = hashInput($apiKey);
 
-                $userdata = array("username" => $username,
+                $credentials = array("username" => $username,
                                     "passwordHash" => $passwordHash,
                                     "apiKeyHash" => $apiKeyHash,
                                     "computersInLocalNetwork" => $macAndNameOfLocalComputer,
@@ -94,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 //Export the credentials as json.
                 file_put_contents($_SERVER['DOCUMENT_ROOT'] .
-                    "/users/$username.json", json_encode($userdata, JSON_PRETTY_PRINT));
+                    "/users/$username.json", json_encode($credentials, JSON_PRETTY_PRINT));
 
                 $serverResponse = array("API_KEY" => $apiKey);
                 echo json_encode($serverResponse);
