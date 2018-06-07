@@ -20,7 +20,7 @@ Project enrolled to V1.0.0! YAYYYYY
 ### Installing  
 
 For the installation, all you have to do is place the .php files in the directory of your domain.  
-Reaching the API is as easy as typing the address of your server followed up by the .php's files location. ex. www.your-domain.com/registration.php
+Reaching the API is as easy as typing the address of your server followed up by the .php's files location. ex. www.your-domain.com/api/registration.php
 
 ## Contributing
 
