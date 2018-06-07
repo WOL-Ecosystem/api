@@ -27,7 +27,8 @@ Reaching the API is as easy as typing the address of your server followed up by 
 If you want to contribute to the project, you are more than welcome. Simply, fork the repository, commit your code and create a pull request.
 
 ## Versions
-  - version 1.0.0 - [release](https://github.com/geocfu/WOL-Server/releases/tag/1.0.0)
+- version 1.1.1 - [release](https://github.com/geocfu/WOL-Server/releases/tag/1.1.1)
+- version 1.0.0 - [release](https://github.com/geocfu/WOL-Server/releases/tag/1.0.0)
 
 ## Authors
 
