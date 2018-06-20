@@ -8,7 +8,7 @@ WOL-Client is a java project meant to run on any raspberry pi. As the name impli
 
 ## Current status
 
-Project enrolled to V1.0.0! YAYYYYY  
+Current project version, stable 1.1.1.  
 
 ## Getting Started
 
