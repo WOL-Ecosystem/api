@@ -14,7 +14,7 @@ Project enrolled to V1.0.0! YAYYYYY
 
 ### Prerequisites
 
-- Apache or nginx already installed and running in your server.
+- Apache or nginx already installed and running on your server.
 - PHP 7.2
 
 ### Installing  
