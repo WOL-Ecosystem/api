@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
                 else {
-                    die("INCORRECT_AUTH_KEY");
+                    die("INCORRECT_PASSWORD");
                 }
             }
             else {
