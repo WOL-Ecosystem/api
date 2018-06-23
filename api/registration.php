@@ -4,6 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 //Check if client connection is of type POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -26,7 +27,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username = checkInput($_POST["username"]);
         }
         else {
-            die("INVALID_USERNAME");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_USERNAME",
+                    "message" => "Invalid username."
+                )
+            );
+            die();
         }
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
@@ -34,7 +41,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $password = checkInput($_POST["password"]);
         }
         else {
-            die("INVALID_PASSWORD");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_PASSWORD",
+                    "message" => "Invalid password."
+                )
+            );
+            die();
         }
 
         //Check local computer mac and name
@@ -66,7 +79,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                     "wakeUp" => 'false');
             }
             else {
-                die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
+                sendResponse("FAILURE",
+                    array(
+                        "error" => "INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX",
+                        "message" => "Invalid syntax of the computer's mac and name. ex. 01:23:EC:67:89:AB-Hercules,0a:23:EC:67:89:AB-Cerberus"
+                    )
+                );
+                die();
             }
         }
 
@@ -98,26 +117,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 file_put_contents($_SERVER['DOCUMENT_ROOT'] .
                     "/users/$username.json", json_encode($credentials, JSON_PRETTY_PRINT));
 
-                $serverResponse = array("API_KEY" => $apiKey);
-                echo json_encode($serverResponse);
+                $serverResponse =
+                sendResponse("SUCCESS",
+                    array(
+                        "API_KEY" => $apiKey
+                    )
+                );
             }
             else {
-                die("ACCOUNT_ALREADY_EXISTS");
+                sendResponse("FAILURE",
+                    array(
+                        "error" => "ACCOUNT_DOES_NOT_EXIST",
+                        "message" => "There is no account matching this username."
+                    )
+                );
+                die();
             }
         }
     }
     //Handle missing post variables.
     else {
         if (!isset($_POST["username"]) || !isset($_POST["password"]) || !isset($_POST["mac_and_name"])) {
-            die("FORM_DATA_MISSING");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "FORM_DATA_MISSING",
+                    "message" => "Some required fields were not sent to the server."
+                )
+            );
+            die();
         }
         else {
-            die("FORM_DATA_EMPTY");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "FORM_DATA_EMPTY",
+                    "message" => "Some required fields are not set."
+                )
+            );
+            die();
         }
     }
 }
 else {
-    die("POST_REQUIRED");
+    sendResponse("FAILURE",
+        array(
+            "error" => "POST_REQUIRED",
+            "message" => "Error while sending request. The request must be of type POST."
+        )
+    );
+    die();
 }
 
 function checkInput ($input) {
@@ -145,19 +192,37 @@ function checkMacAndName($localComputer, $macAddressPattern, $usernamePattern) {
             $computerMac = checkInput($macAndNameOfLocalComputer[0]);
         }
         else {
-            die("INVALID_MAC_ADDRESS");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_MAC_ADDRESS",
+                    "message" => "Invalid MAC address."
+                )
+            );
+            die();
         }
 
         if (preg_match($usernamePattern, $macAndNameOfLocalComputer[1])) {
             $computerName = checkInput($macAndNameOfLocalComputer[1]);
         }
         else {
-            die("INVALID_COMPUTER_NAME");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_COMPUTER_NAME",
+                    "message" => "Invalid computer name."
+                )
+            );
+            die();
         }
         return $computerMac. "," . $computerName;
     }
     else {
-        die("INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX");
+        sendResponse("FAILURE",
+            array(
+                "error" => "INVALID_LOCAL_PC_ΝΑΜΕ_SYNTAX",
+                "message" => "Invalid syntax of the computer's mac and name. ex. 01:23:EC:67:89:AB-Hercules,0a:23:EC:67:89:AB-Cerberus"
+            )
+        );
+        die();
     }
 }
 
@@ -170,5 +235,21 @@ function accountExists ($username) {
         return true;
     }
     return false;
+}
+
+function getApiVersion () {
+    $client = new \Github\Client();
+    $githubResponse = $client->api('repo')->releases()->latest('geocfu', 'WOL-Server');
+    return $githubResponse["tag_name"];
+}
+
+function sendResponse ($status, $message) {
+    $response = array(
+        "apiVersion" => getApiVersion(),
+        "status" => $status,
+        "data" => $message
+    );
+    header('Content-Type: application/json');
+    echo json_encode($response, JSON_PRETTY_PRINT);
 }
 ?>

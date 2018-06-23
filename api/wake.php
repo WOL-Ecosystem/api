@@ -4,6 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 //Check if client connection is of type POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -31,7 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $password = checkInput($_POST["password"]);
         }
         else {
-            die("INVALID_PASSWORD");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_USERNAME",
+                    "message" => "Invalid username."
+                )
+            );
+            die();
         }
 
         //Check local computer name
@@ -67,7 +74,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 if (password_verify($password, $passwordHash)) {
 
-                    $nameDoesNotExistFlag = true;
+                    //initialization
+                    $response = [];
+                    $ComputerAlreadySetToWakeUpResponse = [];
 
                     foreach($jsonContent["computersInLocalNetwork"] as $key => $value) {
 
@@ -75,46 +84,89 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             if (strcasecmp($jsonContent["computersInLocalNetwork"][$key]["computerName"], $userInputNames["computerName"]) == 0) {
 
+                                $nameDoesNotExistFlag = false;
+
                                 if (strcmp($jsonContent["computersInLocalNetwork"][$key]["wakeUp"], "false") == 0) {
-                                    $nameDoesNotExistFlag = false;
 
                                     $jsonContent["computersInLocalNetwork"][$key]["wakeUp"] = "true";
 
-                                    echo "Your request to wake up " . $jsonContent["computersInLocalNetwork"][$key]["computerName"] . " was successfull. <br>";
+                                    $response[] = "Your request to wake up " . $jsonContent["computersInLocalNetwork"][$key]["computerName"] . " was successfull.";
                                 }
                                 else {
-                                    $nameDoesNotExistFlag = false;
-                                    echo "There is already a request to wake up '" . $jsonContent["computersInLocalNetwork"][$key]["computerName"] . "' <br>";
+                                    $ComputerAlreadySetToWakeUpResponse[] = "There is already a request to wake up '" . $jsonContent["computersInLocalNetwork"][$key]["computerName"] . "'";
                                 }
                             }
                         }
                     }
-                    file_put_contents($_SERVER['DOCUMENT_ROOT'] . "/users/$username.json", json_encode($jsonContent, JSON_PRETTY_PRINT));//LOCK_EX
-                    if ($nameDoesNotExistFlag == true) {
-                        echo "The specified computer name(s) dont exist!";
+
+                    if (!empty($response) || !empty($ComputerAlreadySetToWakeUpResponse)) {
+                        $responseArray[] = array_merge($response, $ComputerAlreadySetToWakeUpResponse);
+                        sendResponse("SUCCESS",
+                            array(
+                                "message" => $responseArray
+                            )
+                        );
                     }
+                    else {
+                        sendResponse("SUCCESS",
+                            array(
+                                "message" => "The given computer name(s), does/dont exist!"
+                            )
+                        );
+                    }
+                    file_put_contents($_SERVER['DOCUMENT_ROOT'] . "/users/$username.json", json_encode($jsonContent, JSON_PRETTY_PRINT));//LOCK_EX
                 }
                 else {
-                    die("INCORRECT_PASSWORD");
+                    sendResponse("FAILURE",
+                        array(
+                            "error" => "INCORRECT_PASSWORD",
+                            "message" => "There is no account matching this password."
+                        )
+                    );
+                    die();
                 }
             }
             else {
-                die("ACCOUNT_DOES_NOT_EXIST");
+                sendResponse("FAILURE",
+                    array(
+                        "error" => "ACCOUNT_DOES_NOT_EXIST",
+                        "message" => "There is no account matching this username."
+                    )
+                );
+                die();
             }
         }
     }
     //Handle missing post variables.
     else {
         if (!isset($_POST["username"]) || !isset($_POST["password"]) || !isset($_POST["local_computer_names"])) {
-            die("FORM_DATA_MISSING");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "FORM_DATA_MISSING",
+                    "message" => "Some required fields were not sent to the server."
+                )
+            );
+            die();
         }
         else {
-            die("FORM_DATA_EMPTY");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "FORM_DATA_EMPTY",
+                    "message" => "Some required fields are not set."
+                )
+            );
+            die();
         }
     }
 }
 else {
-    die("POST_REQUIRED");
+    sendResponse("FAILURE",
+        array(
+            "error" => "POST_REQUIRED",
+            "message" => "Error while sending request. The request must be of type POST."
+        )
+    );
+    die();
 }
 
 function checkInput ($input) {
@@ -129,7 +181,13 @@ function checkNames($localComputerName, $usernamePattern) {
          return $localComputerName = checkInput($localComputerName);
     }
     else {
-        die("INVALID_COMPUTER_NAME");
+        sendResponse("FAILURE",
+            array(
+                "error" => "INVALID_COMPUTER_NAME",
+                "message" => "Invalid computer name."
+            )
+        );
+        die();
     }
 }
 
@@ -138,5 +196,21 @@ function accountExists ($username) {
         return true;
     }
     return false;
+}
+
+function getApiVersion () {
+    $client = new \Github\Client();
+    $githubResponse = $client->api('repo')->releases()->latest('geocfu', 'WOL-Server');
+    return $githubResponse["tag_name"];
+}
+
+function sendResponse ($status, $message) {
+    $response = array(
+        "apiVersion" => getApiVersion(),
+        "status" => $status,
+        "data" => $message
+    );
+    header('Content-Type: application/json');
+    echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }
 ?>

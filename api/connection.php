@@ -4,6 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 //Check if client connection is of type POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -22,7 +23,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username = checkInput($_POST["username"]);
         }
         else {
-            die("INVALID_USERNAME");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_USERNAME",
+                    "message" => "Invalid username."
+                )
+            );
+            die();
         }
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
@@ -30,7 +37,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $apiKey = checkInput($_POST["api_key"]);
         }
         else {
-            die("INVALID_API_KEY");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_API_KEY",
+                    "message" => "Invalid API key."
+                )
+            );
+            die();
         }
 
         if (isset($username) && isset($apiKey)) {
@@ -45,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         if (strcmp($jsonContent["computersInLocalNetwork"][$key]["wakeUp"], "true") == 0) {
 
-                            $response = array("wakeUp" => $jsonContent["computersInLocalNetwork"][$key]["computerMac"] );
+                            $response[] = array("wakeUp" => $jsonContent["computersInLocalNetwork"][$key]["computerMac"]);
 
                             $jsonContent["computersInLocalNetwork"][$key]["wakeUp"] = "false";
                         }
@@ -53,33 +66,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     file_put_contents($_SERVER['DOCUMENT_ROOT'] . "/users/$username.json", json_encode($jsonContent, JSON_PRETTY_PRINT), LOCK_EX);
 
                     if (isset($response)) {
-                        echo json_encode($response);
+                        sendResponse("SUCCESS", $response);
                     }
                     else {
-                        echo "DO_NOTHING";
+                        sendResponse("SUCCESS",
+                            array(
+                                "message" => "NO_ACTION_REQUIRED"
+                            )
+                        );
                     }
                 }
                 else {
-                    die("INCORRECT_API_KEY");
+                    sendResponse("FAILURE",
+                        array(
+                            "error" => "INCORRECT_API_KEY",
+                            "message" => "There is no account matching this authentication key."
+                        )
+                    );
+                    die();
                 }
             }
             else {
-                die("ACCOUNT_DOES_NOT_EXIST");
+                sendResponse("FAILURE",
+                    array(
+                        "error" => "ACCOUNT_DOES_NOT_EXIST",
+                        "message" => "There is no account matching this username."
+                    )
+                );
+                die();
             }
         }
     }
     //Handle missing post variables.
     else {
         if (!isset($_POST["username"]) || !isset($_POST["api_key"])) {
-            die("FORM_DATA_MISSING");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "FORM_DATA_MISSING",
+                    "message" => "Some required fields were not sent to the server."
+                )
+            );
+            die();
         }
         else {
-            die("FORM_DATA_EMPTY");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "FORM_DATA_EMPTY",
+                    "message" => "Some required fields are not set."
+                )
+            );
+            die();
         }
     }
 }
 else {
-    die("POST_REQUIRED");
+    sendResponse("FAILURE",
+        array(
+            "error" => "POST_REQUIRED",
+            "message" => "Error while sending request. The request must be of type POST."
+        )
+    );
+    die();
 }
 
 function checkInput ($input) {
@@ -93,5 +140,21 @@ function accountExists ($username) {
         return true;
     }
     return false;
+}
+
+function getApiVersion () {
+    $client = new \Github\Client();
+    $githubResponse = $client->api('repo')->releases()->latest('geocfu', 'WOL-Server');
+    return $githubResponse["tag_name"];
+}
+
+function sendResponse ($status, $message) {
+    $response = array(
+        "apiVersion" => getApiVersion(),
+        "status" => $status,
+        "data" => $message
+    );
+    header('Content-Type: application/json');
+    echo json_encode($response, JSON_PRETTY_PRINT);
 }
 ?>
