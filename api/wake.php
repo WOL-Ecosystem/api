@@ -24,7 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username = checkInput($_POST["username"]);
         }
         else {
-            die("INVALID_USERNAME");
+            sendResponse("FAILURE",
+                array(
+                    "error" => "INVALID_USERNAME",
+                    "message" => "Invalid username."
+                )
+            );
+            die();
         }
 
         //Check password and if is valid, save it. If password is invalid abort the connection.
@@ -34,8 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         else {
             sendResponse("FAILURE",
                 array(
-                    "error" => "INVALID_USERNAME",
-                    "message" => "Invalid username."
+                    "error" => "INVALID_PASSWORD",
+                    "message" => "Invalid password."
                 )
             );
             die();
