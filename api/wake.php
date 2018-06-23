@@ -113,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         );
                     }
                     else {
-                        sendResponse("SUCCESS",
+                        sendResponse("FAILURE",
                             array(
                                 "message" => "The given computer name(s), does/dont exist!"
                             )
