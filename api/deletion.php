@@ -4,7 +4,6 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 //Check if client connection is of type POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -132,15 +131,8 @@ function accountExists ($username) {
     return false;
 }
 
-function getApiVersion () {
-    $client = new \Github\Client();
-    $githubResponse = $client->api('repo')->releases()->latest('geocfu', 'WOL-Server');
-    return $githubResponse["tag_name"];
-}
-
 function sendResponse ($status, $message) {
     $response = array(
-        "apiVersion" => getApiVersion(),
         "status" => $status,
         "data" => $message
     );
