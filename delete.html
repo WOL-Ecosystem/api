@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="WOL - Server">
+        <meta name="author" content="George Mantellos, github.com/geocfu">
+        <title>WOLS · Delete</title>
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        <style>
+            body,html{height:100%}body{display:-ms-flexbox;display:-webkit-box;display:flex;-ms-flex-align:center;-ms-flex-pack:center;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;background-color:#f5f5f5}#logo{height:150px;width:150px}.container{margin-top:50px;padding-top:260px}.form-login{width:100%;max-width:330px;padding:15px;margin:0 auto}@media (min-width:576px){.container{padding-top:0;width:100%;max-width:500px}.form-login{max-width:400px}}.form-login .form-control{position:relative;box-sizing:border-box;height:auto;padding:10px;font-size:16px}.form-login .form-control:focus{z-index:2}.form-login input[type=username-text]{margin-bottom:5px}.form-login input[type=password]{margin-top:5px}#button-icon{top:4px;position:relative}.z-depth-1{box-shadow:0 3px 6px rgba(0,0,0,.16),0 3px 6px rgba(0,0,0,.23)}.bd-callout{padding:1.25rem;margin-top:1.25rem;margin-bottom:1.25rem;border:1px solid #eee;border-left-width:.25rem;border-radius:.25rem}.bd-callout-success{border-left-color:#5cb85c}.bd-callout-danger{border-left-color:#dc3545}#muted-color{color:#6c757d}
+        </style>
+        <meta name="theme-color" content="#0277bd">
+
+    </head>
+    <body class="text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="card-group">
+                        <div class="card z-depth-1 bd-callout bd-callout-danger">
+                            <form class="form-login" action="api/deletion.php" method="POST" accept-charset="utf-8">
+                                <img src="images/ethernet_delete.svg" alt="" id="logo">
+
+                                <br><br>
+
+                                <h1 class="h3 mb-3 font-weight-normal">WOL Delete Account</h1>
+
+                                <label for="username" class="sr-only">Password</label>
+                                <input name="username" type="username-text" id="username" class="form-control" placeholder="Username" required autofocus>
+
+                                <label for="password" class="sr-only">Password</label>
+                                <input name="password" type="password" id="password" class="form-control" placeholder="Password" required>
+                                <small id="passwordHelpBlock" class="form-text text-muted">
+                                    Your password must be 9-32 characters long, contain letters, numbers and special characters in upper and lowercase, and must not contain spaces.
+                                </small>
+
+                                <br>
+
+                                <button class="btn btn-lg btn-danger btn-block" type="submit"><i class="material-icons" id="button-icon">delete_forever</i> DELETE ACCOUNT</button>
+                                <small id="deleteHelpBlock" class="form-text text-muted">
+                                    Do you want to wake up your computer(s)?<a href="https://wols.geocfu.me" id="muted-color"><u>Wake up</u></a>
+                                </small>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <p class="mt-3 text-muted">&copy; WOLS 2018</p>
+                </div>
+                <div class="col"></div>
+                <div class="col">
+                    <p class="mt-3 text-muted">
+                        <a href="https://github.com/geocfu/WOL-Server" target="_blank" id="muted-color"><u>Github</u></a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
