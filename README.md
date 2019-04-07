@@ -1,3 +1,6 @@
+# Current Status
+The project is being actively reworked including code refactoring and logic. As of now, the stable release is the v2.1.1.
+
 # WOL-Server (aka. Wake on Lan-Server)
 
 WOL-Server is a RESTful API designed to work alongisde with the WOL-Client.
